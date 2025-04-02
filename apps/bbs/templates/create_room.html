@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>ルーム作成</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #333;
+    }
+
+    form {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    label.section-title {
+      display: block;
+      font-weight: bold;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid #7cc576;
+      width: fit-content;
+      padding-bottom: 2px;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-bottom: 1rem;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+      line-height: 1.5;
+      min-height: 120px;
+    }
+
+    button {
+      background-color: #7cc576;
+      color: white;
+      font-size: 1rem;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #6bb264;
+    }
+
+    .criteria-input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .criteria-input-group input {
+      flex: 1;
+    }
+
+    ul#criteria-display {
+      list-style: none;
+      padding-left: 0;
+      margin-bottom: 1rem;
+    }
+
+    ul#criteria-display li {
+      background-color: #eee;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    ul#criteria-display li button {
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        line-height: 24px;
+        cursor: pointer;
+        margin-left: 1rem;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+
+    .submit-button {
+      margin-top: 1.5rem;
+      width: 100%;
+    }
+    
+    .page-title {
+      font-size: 2rem;
+      font-weight: bold;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      color: #fff;
+      background: linear-gradient(135deg, #7cc576, #4cb8c4);
+      border-radius: 12px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      margin-bottom: 2rem;
+    }
+  </style>
+
+  <script>
+    let criteriaId = 0;
+
+    function addCriteria() {
+      const input = document.getElementById("criteria-input");
+      const value = input.value.trim();
+      if (!value) return;
+
+      const id = "criteria-" + criteriaId++;
+
+      // 表示リストに追加
+      const displayList = document.getElementById("criteria-display");
+      const item = document.createElement("li");
+      item.id = id;
+
+      const span = document.createElement("span");
+      span.textContent = value;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "×";
+      removeBtn.onclick = function () {
+        item.remove();
+        const hidden = document.getElementById(id + "-hidden");
+        if (hidden) hidden.remove();
+      };
+
+      item.appendChild(span);
+      item.appendChild(removeBtn);
+      displayList.appendChild(item);
+
+      // hidden input を送信用に追加
+      const hiddenList = document.getElementById("criteria-hidden");
+      const hiddenInput = document.createElement("input");
+      hiddenInput.type = "hidden";
+      hiddenInput.name = "criteria";
+      hiddenInput.value = value;
+      hiddenInput.id = id + "-hidden";
+      hiddenList.appendChild(hiddenInput);
+
+      input.value = "";
+    }
+  </script>
+</head>
+<body>
+
+  <h1 class="page-title">Blind Brainstorming</h1>
+
+  <form method="post">
+    <label class="section-title">名前（ホスト）</label>
+    <input type="text" name="name" required />
+
+    <label class="section-title">議題</label>
+    <textarea name="topic" placeholder="議題を入力してください" required></textarea>
+
+    <label class="section-title">評価軸</label>
+    <div class="criteria-input-group">
+      <input type="text" id="criteria-input" placeholder="評価軸を入力してください" />
+      <button type="button" onclick="addCriteria()">追加</button>
+    </div>
+
+    <ul id="criteria-display"></ul>
+    <div id="criteria-hidden"></div>
+
+    <button type="submit" class="submit-button">セッションを開始</button>
+  </form>
+
+</body>
+</html>

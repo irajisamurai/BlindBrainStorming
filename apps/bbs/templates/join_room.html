@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>ルームに入室</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #333;
+    }
+
+    form {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    label.section-title {
+      display: block;
+      font-weight: bold;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 2px solid #7cc576;
+      width: fit-content;
+      padding-bottom: 2px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-bottom: 1rem;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #7cc576;
+      color: white;
+      font-size: 1rem;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    button:hover {
+      background-color: #6bb264;
+    }
+    .page-title {
+      font-size: 2rem;
+      font-weight: bold;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      color: #fff;
+      background: linear-gradient(135deg, #7cc576, #4cb8c4);
+      border-radius: 12px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="page-title">Blind Brainstorming</h1>
+
+  <form method="post">
+    <label class="section-title">ルームID</label>
+    <input type="text" name="room_id" placeholder="8文字のIDを入力" required />
+
+    <label class="section-title">名前</label>
+    <input type="text" name="name" placeholder="あなたの名前" required />
+
+    <button type="submit">入室する</button>
+  </form>
+
+</body>
+</html>

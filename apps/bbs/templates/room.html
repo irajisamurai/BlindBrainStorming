@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ルーム</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
+
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            text-align: center;
+            font-family: inherit;  /* or 削除する */        }
+        
+        .card {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .section-title {
+            display: block;
+            font-weight: bold;
+            margin: 1.2rem 0 0.3rem;
+            border-bottom: 2px solid #7cc576;
+            width: fit-content;
+            padding-bottom: 2px;
+        }
+        
+        .display-box {
+            background-color: #f3f3f3;
+            padding: 0.8rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        
+        .criteria-list {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 0.5rem;
+        }
+        
+        .criteria-list li {
+            background-color: #eee;
+            margin-bottom: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            text-align: left;
+        }
+        
+        .start-button {
+            background-color: #7cc576;
+            color: white;
+            font-size: 1.1rem;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 10px;
+            width: 100%;
+            margin-top: 1.2rem;
+        }
+        
+        .start-button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        
+        .danger-button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+        
+        .participant-list {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+          }
+          
+          .participant-item {
+            margin-bottom: 0.8rem;
+            padding: 0.6rem;
+            border-radius: 8px;
+          }
+          
+          .participant-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+          }
+          
+          .participant-name {
+            font-size: 1rem;
+          }
+          
+          .checkmark {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+          }
+          
+          .highlight-self {
+            background: #f0f0f0;
+          }
+          
+        
+        .small-button {
+            background-color: #ccc;
+            color: #333;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+
+        .participant-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+          }
+          
+        .participant-table th, .participant-table td {
+        padding: 0.6rem;
+        border-bottom: 1px solid #ccc;
+        text-align: center;
+        }
+        
+        .participant-table th {
+        background-color: #f3f3f3;
+        font-weight: bold;
+        }
+        
+        .highlight-self {
+        background-color: #f0f0f0;
+        }
+        
+        .small-button {
+        background-color: #ccc;
+        color: #333;
+        border: none;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        margin: 0.2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            color: #fff;
+            background: linear-gradient(135deg, #7cc576, #4cb8c4);
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            margin-bottom: 2rem;
+          }
+        .title {
+        font-size: 2rem;
+        font-weight: bold;
+        padding: 1rem 1.5rem;
+        text-align: center;
+        color: #fff;
+        background: linear-gradient(135deg, #7cc576, #4cb8c4);
+        border-radius: 12px;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        margin-bottom: 2rem;
+        }
+        .title::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -75%;
+        width: 50%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: skewX(-20deg);
+        animation: shimmer 2s infinite;
+        z-index: 2;
+        }
+        @keyframes shimmer {
+        0% { left: -75%; }
+        100% { left: 125%; }
+        }
+          
+
+        .textarea-full {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            min-height: 180px;  /* ← ここがでかくするキモ！ */
+            box-sizing: border-box;
+            background: #fff;
+        }
+        
+        blockquote.display-box {
+            background-color: #fdfdfd;
+            border-left: 4px solid #7cc576;
+            margin: 0.5rem 0 1rem 0;
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            font-style: italic;
+          }
+        
+        .loading-spinner {
+        border: 4px solid #eee;
+        border-top: 4px solid #7cc576;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        animation: spin 1s linear infinite;
+        margin: 2rem auto;
+        }
+        
+        @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+        }
+
+        .wait-text {
+            text-align: center;
+            font-size: 1rem;
+            color: #555;
+            margin-top: 1rem;
+          }
+        
+        .score-label {
+        display: inline-block;
+        background-color: #888;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 8px;
+        font-weight: bold;
+        margin-bottom: 0.4rem;
+        }
+        
+        .score-line {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.4rem;
+        padding: 0 0.3rem;
+        }
+        
+        .score-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #ddd;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        }
+        
+        .score-circle.active {
+        background-color: #3e7d2b;
+        color: white;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          .animated-card {
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0; /* 最初は透明 */
+          }
+          
+          .animated-delay-1 { animation-delay: 0.2s; }
+          .animated-delay-2 { animation-delay: 0.4s; }
+          .animated-delay-3 { animation-delay: 0.6s; }
+          
+        .sticky-note {
+        background: #fff475; /* 付箋イエロー */
+        border: none;
+        padding: 1rem;
+        border-radius: 4px 4px 40px 4px; /* 右下だけ丸くする！ */
+        box-shadow:
+            inset 0 -10px 15px rgba(255, 255, 255, 0.3),  /* 光の反射 */
+            2px 4px 10px rgba(0, 0, 0, 0.2);               /* 外枠の影 */
+        font-family: 'Indie Flower', 'Comic Sans MS';
+        font-size: 1.1rem;
+        line-height: 1.6;
+        width: 100%;
+        min-height: 180px;
+        resize: vertical;
+        box-sizing: border-box;
+        transition: box-shadow 0.2s ease;
+        }
+        
+        .sticky-note:focus {
+        outline: none;
+        box-shadow:
+            inset 0 -10px 15px rgba(255, 255, 255, 0.3),
+            0 0 0 4px #ffe566;
+        }
+        
+        .phase-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+          }
+          
+          .phase-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+          }
+          .progress-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: conic-gradient(#3cd3ad {{ progress_pct }}%, #e0f7f5 {{ progress_pct }}%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: #2e7d74;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+          }
+          .title-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(to right, #4cb8c4, #3cd3ad);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+          }
+          
+          .title-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+          }
+          
+          .progress-bubble {
+            width: 48px;
+            height: 48px;
+          }
+                    
+          .circle-text {
+            fill: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: middle;
+          }
+          .progress-bubble svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);  /* これで "12時方向スタート" になる！ */
+          }
+          
+          .circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 3;
+          }
+          
+          .circle-bar {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+          }
+          
+          
+          
+          
+    </style>      
+</head>
+<body>
+    {% if room.phase == 'waiting' %}
+        <div class="container">
+            <div class="title-box">
+                <div class="title-text">ルーム待機画面</div>
+                <div class="progress-bubble">
+                    <svg viewBox="0 0 36 36">
+                      <circle class="circle-bg" cx="18" cy="18" r="16" />
+                      <circle class="circle-bar" cx="18" cy="18" r="16"
+                              stroke-dasharray="100"
+                              stroke-dashoffset="{{ 100 - progress_pct }}" />
+                      <text x="18" y="18" transform="rotate(90 18 18)" class="circle-text">{{ current_phase }}/{{ total_phase }}</text>
+                    </svg>
+                  </div>
+                  
+              </div>
+              
+              
+            <div class="card">
+            <p><strong>ルームID:</strong> {{ room.id }}</p>
+
+            <label class="section-title">議題</label>
+            <div class="display-box">{{ room.topic }}</div>
+
+            <label class="section-title">評価軸</label>
+            <ul class="criteria-list">
+                {% for c in criteria_list %}
+                <li>{{ c }}</li>
+                {% endfor %}
+            </ul>
+
+            {% if self_id and participants[0].id|string == self_id %}
+                <form method="post" action="{{ url_for('delete_room', room_id=room.id) }}">
+                <button type="submit" class="danger-button">ルームを削除</button>
+                </form>
+                <form method="post" action="{{ url_for('start_brainstorming', room_id=room.id) }}?participant_id={{ self_id }}">
+                <button id="start-btn" class="start-button" {% if not all_ready %}disabled{% endif %}>
+                    セッションを開始
+                </button>
+                </form>
+            {% endif %}
+            </div>
+
+            <h3>参加者一覧</h3>
+            <table class="participant-table">
+            <thead>
+                <tr>
+                <th>名前</th>
+                <th>準備</th>
+                <th>ステータス</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set host_id = participants[0].id|string %}
+                {% for participant in participants %}
+                <tr class="{% if participant.id|string == self_id %}highlight-self{% endif %}">
+                    <td>{{ participant.name }}</td>
+                    <td id="check-{{ participant.id }}">
+                    {% if participant.is_ready %}✅{% endif %}
+                    </td>
+                    <td>
+                    {% if participant.id|string == self_id and self_id != host_id %}
+                        <form method="post" action="{{ url_for('leave_room', participant_id=participant.id) }}" style="display:inline;">
+                        <button type="submit" class="small-button">退出</button>
+                        </form>
+                        <button onclick="toggleReady({{ participant.id }})"
+                                id="ready-btn-{{ participant.id }}"
+                                class="small-button">
+                        {% if participant.is_ready %}キャンセル{% else %}準備完了{% endif %}
+                        </button>
+                    {% elif participant.id|string == host_id %}
+                        ホスト
+                    {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+
+              
+        </div>
+
+    {% elif room.phase == 'brainstorming' %}
+        <div class="container">
+            <div class="title-box">
+                <div class="title-text">アイデアを入力</div>
+                <div class="progress-bubble">
+                    <svg viewBox="0 0 36 36">
+                      <circle class="circle-bg" cx="18" cy="18" r="16" />
+                      <circle class="circle-bar" cx="18" cy="18" r="16"
+                              stroke-dasharray="100"
+                              stroke-dashoffset="{{ 100 - progress_pct }}" />
+                      <text x="18" y="18" transform="rotate(90 18 18)" class="circle-text">{{ current_phase }}/{{ total_phase }}</text>
+                    </svg>
+                  </div>
+                  
+              </div>
+              
+              
+            <div class="card">
+            <label class="section-title">議題</label>
+            <div class="display-box">{{ room.topic }}</div>
+        
+            <label class="section-title">評価軸</label>
+            {% if criteria_list %}
+                <ul class="criteria-list">
+                {% for c in criteria_list %}
+                    <li>{{ c }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <div class="display-box">評価軸がありません</div>
+            {% endif %}
+        
+            <label class="section-title">アイデア</label>
+            <form method="post" action="{{ url_for('submit_idea') }}">
+                <input type="hidden" name="room_id" value="{{ room.id }}">
+                <input type="hidden" name="participant_id" value="{{ self_id }}">
+                <textarea name="idea"
+                        placeholder="アイデアを入力してください"
+                        required
+                        rows="5"
+                        class="sticky-note"></textarea>
+                <br>
+                <button type="submit" class="start-button">アイデアを提出</button>
+            </form>
+            </div>
+        </div>
+      
+
+    {% elif room.phase == 'feedback' %}
+        <div class="container">
+            <div class="title-box">
+                <div class="title-text">フィードバックを入力</div>
+                <div class="progress-bubble">
+                    <svg viewBox="0 0 36 36">
+                      <circle class="circle-bg" cx="18" cy="18" r="16" />
+                      <circle class="circle-bar" cx="18" cy="18" r="16"
+                              stroke-dasharray="100"
+                              stroke-dashoffset="{{ 100 - progress_pct }}" />
+                      <text x="18" y="18" transform="rotate(90 18 18)" class="circle-text">{{ current_phase }}/{{ total_phase }}</text>
+                    </svg>
+                  </div>
+                  
+              </div>
+            
+            {% if feedback_target %}
+            <div class="card">
+                <label class="section-title">提出されたアイデア</label>
+                <blockquote class="display-box" style="white-space: pre-line;">{{ feedback_target.content }}</blockquote>
+        
+                <label class="section-title">評価軸</label>
+                {% if criteria_list %}
+                <ul class="criteria-list">
+                    {% for c in criteria_list %}
+                    <li>{{ c }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="display-box">評価軸がありません</div>
+                {% endif %}
+        
+                <label class="section-title">フィードバック</label>
+                <form method="post" action="{{ url_for('submit_feedback') }}">
+                <input type="hidden" name="room_id" value="{{ room.id }}">
+                <input type="hidden" name="from_participant_id" value="{{ self_id }}">
+                <input type="hidden" name="to_idea_id" value="{{ feedback_target.id }}">
+                <textarea name="content" placeholder="フィードバックを入力してください" class="sticky-note" required class="textarea-full"></textarea>
+                <button type="submit" class="start-button">
+                    フィードバックを提出
+                    {% if feedback_progress %}
+                    ({{ feedback_progress.done + 1 }}/{{ feedback_progress.total }})
+                    {% endif %}
+                </button>
+                </form>
+            </div>
+            {% else %}
+            <div class="container">
+                <h2>全てのフィードバックが完了しました。他の参加者を待っています...</h2>
+                <div class="loading-spinner"></div>
+                <p class="wait-text">しばらくお待ちください</p>
+              </div>
+              
+            {% endif %}
+        </div>
+      
+    {% elif room.phase == 'evaluating' %}
+    <div class="container">
+        <div class="container">
+            <div class="title-box">
+                <div class="title-text">フィードバックを入力</div>
+                <div class="progress-bubble">
+                    <svg viewBox="0 0 36 36">
+                      <circle class="circle-bg" cx="18" cy="18" r="16" />
+                      <circle class="circle-bar" cx="18" cy="18" r="16"
+                              stroke-dasharray="100"
+                              stroke-dashoffset="{{ 100 - progress_pct }}" />
+                      <text x="18" y="18" transform="rotate(90 18 18)" class="circle-text">{{ current_phase }}/{{ total_phase }}</text>
+                    </svg>
+                  </div>
+                  
+              </div>
+        <h2>フィードバックを要約中です...</h2>
+        <div class="loading-spinner"></div>
+        <p class="wait-text">しばらくお待ちください</p>
+        
+    {% elif room.phase == 'evaluated' %}
+        <div class="container">
+            <div class="container">
+                <div class="title-box">
+                    <div class="title-text">評価結果</div>
+                    <div class="progress-bubble">
+                        <svg viewBox="0 0 36 36">
+                          <circle class="circle-bg" cx="18" cy="18" r="16" />
+                          <circle class="circle-bar" cx="18" cy="18" r="16"
+                                  stroke-dasharray="100"
+                                  stroke-dashoffset="{{ 100 - progress_pct }}" />
+                          <text x="18" y="18" transform="rotate(90 18 18)" class="circle-text">{{ current_phase }}/{{ total_phase }}</text>
+                        </svg>
+                      </div>
+                      
+                  </div>
+
+            <div class="card">
+            <label class="section-title">あなたのアイデア</label>
+            <blockquote class="display-box" style="white-space: pre-line;">{{ my_idea }}</blockquote>
+        
+            <label class="section-title">評価軸に基づく定量評価</label>
+            {% for key, value in evaluation_result.scores.items() %}
+                <div style="margin-bottom: 1.5rem;">
+                <span class="score-label">{{ key }}</span>
+                <div class="score-line">
+                    {% for i in range(1, 6) %}
+                    <div class="score-circle {% if i == value %}active{% endif %}">{{ i }}</div>
+                    {% endfor %}
+                </div>
+                </div>
+            {% endfor %}
+        
+            <label class="section-title">フィードバックの要約</label>
+            <div class="display-box" style="white-space: pre-line;">{{ evaluation_result.summary }}</div>
+        
+            <h3>参加者一覧</h3>
+            <table class="participant-table">
+            <thead>
+                <tr>
+                <th>名前</th>
+                <th>準備</th>
+                <th>ステータス</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set host_id = participants[0].id|string %}
+                {% for participant in participants %}
+                <tr class="{% if participant.id|string == self_id %}highlight-self{% endif %}">
+                    <td>{{ participant.name }}</td>
+                    <td id="check-{{ participant.id }}">
+                    {% if participant.is_ready %}✅{% endif %}
+                    </td>
+                    <td>
+                    {% if participant.id|string == self_id and self_id != host_id %}
+                        <form method="post" action="{{ url_for('leave_room', participant_id=participant.id) }}" style="display:inline;">
+                        <button type="submit" class="small-button">退出</button>
+                        </form>
+                        <button onclick="toggleReady({{ participant.id }})"
+                                id="ready-btn-{{ participant.id }}"
+                                class="small-button">
+                        {% if participant.is_ready %}キャンセル{% else %}準備完了{% endif %}
+                        </button>
+                    {% elif participant.id|string == host_id %}
+                        ホスト
+                    {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+        
+            {% if self_id == host_id %}
+            <form method="post" action="{{ url_for('start_rebrainstorming', room_id=room.id) }}?participant_id={{ self_id }}">
+                <button id="start-btn" {% if not all_ready %}disabled{% endif %} class="start-button">
+                アイデア再提出フェーズへ進む
+                </button>
+            </form>
+            {% endif %}
+            </div>
+        </div>
+      
+
+    {% elif room.phase == 'rebrainstorming' %}
+        <div class="container">
+
+            <div class="title-box">
+                <div class="title-text">アイデアの再提出</div>
+                <div class="progress-bubble">
+                    <svg viewBox="0 0 36 36">
+                      <circle class="circle-bg" cx="18" cy="18" r="16" />
+                      <circle class="circle-bar" cx="18" cy="18" r="16"
+                              stroke-dasharray="100"
+                              stroke-dashoffset="{{ 100 - progress_pct }}" />
+                      <text x="18" y="18" transform="rotate(90 18 18)" class="circle-text">{{ current_phase }}/{{ total_phase }}</text>
+                    </svg>
+                  </div>
+                  
+              </div>
+
+            <div class="card">
+            {% if submitted %}
+                <div class="container">
+                    <label class="section-title">再提出完了</label>
+                    <h2>他の参加者の再提出を待っています...</h2>
+                    <div class="loading-spinner"></div>
+                    <p class="wait-text">しばらくお待ちください</p>
+                
+                    <label class="section-title">あなたの再提出アイデア</label>
+                    <blockquote class="display-box" style="white-space: pre-line;">{{ my_idea }}</blockquote>
+                </div>
+              
+            {% else %}
+                <label class="section-title">前回のあなたのアイデア</label>
+                <blockquote class="display-box" style="white-space: pre-line;">{{ my_idea }}</blockquote>
+        
+                <label class="section-title">前回の定性評価（要約）</label>
+                <div class="display-box" style="white-space: pre-line;">{{ evaluation_result.summary }}</div>
+        
+                <label class="section-title">前回の定量評価</label>
+                {% for key, value in evaluation_result.scores.items() %}
+                <div style="margin-bottom: 1.5rem;">
+                    <span class="score-label">{{ key }}</span>
+                    <div class="score-line">
+                    {% for i in range(1, 6) %}
+                        <div class="score-circle {% if i == value %}active{% endif %}">{{ i }}</div>
+                    {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+        
+                <label class="section-title">改善したアイデア</label>
+                <form method="post" action="{{ url_for('submit_idea') }}">
+                <input type="hidden" name="room_id" value="{{ room.id }}">
+                <input type="hidden" name="participant_id" value="{{ self_id }}">
+                <textarea name="idea" required rows="5" class="sticky-note" style="width: 100%; border-radius: 10px; padding: 1rem;" placeholder="改善したアイデアを入力してください"></textarea><br>
+                <button type="submit" class="start-button">再提出する</button>
+                </form>
+            {% endif %}
+            </div>
+        </div>
+      
+    
+    {% elif room.phase == 'final_result' %}
+        <div class="container">
+            <div class="title-box">
+                <div class="title-text">最終評価結果（最も評価の高かったアイデア</div>
+                <div class="progress-bubble">
+                    <svg viewBox="0 0 36 36">
+                      <circle class="circle-bg" cx="18" cy="18" r="16" />
+                      <circle class="circle-bar" cx="18" cy="18" r="16"
+                              stroke-dasharray="100"
+                              stroke-dashoffset="{{ 100 - progress_pct }}" />
+                      <text x="18" y="18" transform="rotate(90 18 18)" class="circle-text">{{ current_phase }}/{{ total_phase }}</text>
+                    </svg>
+                  </div>
+                  
+              </div>
+            {% for result in final_results %}
+            <div class="card animated-card animated-delay-{{ loop.index }}">
+                <label class="section-title">アイデア内容</label>
+                <blockquote class="display-box" style="white-space: pre-line;">{{ result.idea }}</blockquote>
+
+                <label class="section-title">定性評価（要約）</label>
+                <div class="display-box" style="white-space: pre-line;">{{ result.summary }}</div>
+
+                <label class="section-title">定量評価</label>
+                {% for key, value in result.scores.items() %}
+                <div style="margin-bottom: 1.2rem;">
+                    <span class="score-label">{{ key }}</span>
+                    <div class="score-line">
+                    {% for i in range(1, 6) %}
+                        <div class="score-circle {% if i == value %}active{% endif %}">{{ i }}</div>
+                    {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+        
+            <form method="get" action="{{ url_for('home') }}">
+            <button type="submit" class="start-button">ホームに戻る</button>
+            </form>
+        </div>
+      
+    
+    {% endif %}
+    
+    
+                
+
+    <!-- JSはページ最後にまとめて置く！ -->
+    <script>
+        const socket = io();
+        const room_id = "{{ room.id }}";
+        const self_id = "{{ self_id }}";
+
+        socket.emit('join', { room_id });
+
+        function toggleReady(participant_id) {
+            console.log("🟡 toggleReady called:", participant_id);
+            socket.emit('toggle_ready', { room_id, participant_id });
+        }
+
+        socket.on('update_ready_status', function(data) {
+            if (data.room_id !== room_id) return;
+        
+            let allReady = true;
+        
+            data.participants.forEach(p => {
+                const isSelf = String(p.id) === String(self_id);  // ← 明示的に比較
+                const check = document.getElementById("check-" + p.id);
+                const btn = document.getElementById("ready-btn-" + p.id);
+        
+                if (check) {
+                    check.textContent = p.is_ready ? "✅" : "";
+                }
+        
+                if (btn && isSelf) {
+                    btn.textContent = p.is_ready ? "キャンセル" : "準備完了";
+                }
+        
+                // allReady に含めるのはホスト以外の準備状況だけ
+                const isHost = String(p.id) === String(data.participants[0].id);
+                if (!p.is_ready && !isHost) {
+                    allReady = false;
+                }
+            });
+        
+            const startBtn = document.getElementById("start-btn");
+            if (startBtn) {
+                startBtn.disabled = !allReady;
+            }
+        });
+        
+
+        socket.on('remove_participant', function(data) {
+            if (data.room_id === room_id) {
+                const participant = document.getElementById("participant-" + data.participant_id);
+                if (participant) {
+                    participant.remove();
+                }
+            }
+        });
+
+        socket.on('update_participants', function(data) {
+            if (data.room_id !== room_id) return;
+          
+            const tableBody = document.querySelector('.participant-table tbody');
+            if (!tableBody) return;
+          
+            const row = document.createElement("tr");
+            row.id = "participant-" + data.participant_id;
+          
+            const isSelf = String(data.participant_id) === String(self_id);
+            const isHost = false; // 新規参加者はホストじゃない前提（ホストは最初に入ってる）
+          
+            // 名前
+            const nameCell = document.createElement("td");
+            nameCell.textContent = data.name;
+          
+            // チェックマーク
+            const checkCell = document.createElement("td");
+            checkCell.id = "check-" + data.participant_id;
+            checkCell.textContent = "";
+          
+            // 操作欄
+            const controlCell = document.createElement("td");
+            if (isSelf) {
+                // 自分の場合：ボタン表示（そのまま）
+                const leaveForm = document.createElement("form");
+                leaveForm.method = "post";
+                leaveForm.action = `/leave_room/${data.participant_id}`;
+                leaveForm.style.display = "inline";
+              
+                const leaveBtn = document.createElement("button");
+                leaveBtn.type = "submit";
+                leaveBtn.className = "small-button";
+                leaveBtn.textContent = "退出";
+              
+                leaveForm.appendChild(leaveBtn);
+                controlCell.appendChild(leaveForm);
+              
+                const readyBtn = document.createElement("button");
+                readyBtn.type = "button";
+                readyBtn.className = "small-button";
+                readyBtn.id = "ready-btn-" + data.participant_id;
+                readyBtn.textContent = "準備完了";
+                readyBtn.onclick = function () {
+                  toggleReady(data.participant_id);
+                };
+              
+                controlCell.appendChild(readyBtn);
+              
+              } else if (isHost) {
+                controlCell.textContent = "ホスト";
+              
+              } else {
+                // 他の参加者 → 何も表示しない！
+              }
+              
+              
+          
+            // 行にセルを追加
+            row.appendChild(nameCell);
+            row.appendChild(checkCell);
+            row.appendChild(controlCell);
+          
+            // 自分ならハイライト
+            if (isSelf) {
+              row.classList.add("highlight-self");
+            }
+          
+            // テーブルに行追加
+            tableBody.appendChild(row);
+          });
+          
+
+        socket.on('room_deleted', function(data) {
+            if (data.room_id === room_id) {
+                window.location.href = "/";
+            }
+        });
+
+        socket.on('phase_update', function(data) {
+            if (data.room_id === room_id) {
+                console.log("🚀 フェーズ更新:", data.phase);
+                location.reload();  // 自動で再読み込み！
+            }
+        });
+                
+        socket.on('idea_submitted', function(data) {
+            if (data.room_id === room_id && String(self_id) === String(data.participant_id)) {
+                console.log("📝 自分のアイデアを提出しました！");
+                const formWrapper = document.getElementById("idea-form-wrapper");
+                const waitMessage = document.getElementById("waiting-message");
+        
+                if (formWrapper) formWrapper.style.display = "none";
+                if (waitMessage) waitMessage.style.display = "block";
+            }
+        });
+        
+        const params = new URLSearchParams(window.location.search);
+        const isSubmitted = params.get('submitted') === '1';
+    
+        if (isSubmitted && "{{ room.phase }}" === "brainstorming") {
+            document.body.innerHTML = `
+                <div class="container">
+                    <div class="title-box">
+                        <div class="title-text">アイデアを入力</div>
+                        <div class="progress-bubble">
+                            <svg viewBox="0 0 36 36">
+                            <circle class="circle-bg" cx="18" cy="18" r="16" />
+                            <circle class="circle-bar" cx="18" cy="18" r="16"
+                                    stroke-dasharray="100"
+                                    stroke-dashoffset="{{ 100 - progress_pct }}" />
+                            <text x="18" y="18" transform="rotate(90 18 18)" class="circle-text">{{ current_phase }}/{{ total_phase }}</text>
+                            </svg>
+                        </div>
+                        
+                    </div>
+                    <h2>全員がアイデアを提出するのを待っています...</h2>
+                    <div class="loading-spinner"></div> <!-- ← ここ！ -->
+
+                    <div class="card">
+                        <label class="section-title">議題</label>
+                        <div class="display-box">{{ room.topic }}</div>
+
+                        <label class="section-title">評価軸</label>
+                        {% if criteria_list %}
+                        <ul class="criteria-list">
+                            {% for c in criteria_list %}
+                            <li>{{ c }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <div class="display-box">評価軸がありません</div>
+                        {% endif %}
+
+                        <label class="section-title">あなたの提出アイデア</label>
+                        <blockquote class="display-box" style="white-space: pre-line;">{{ my_idea or "（提出内容が見つかりません）" }}</blockquote>
+                    </div>
+                    </div>
+
+            `;
+        }
+    </script>
+</body>
+</html>
