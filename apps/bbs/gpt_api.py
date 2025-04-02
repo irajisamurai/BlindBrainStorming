@@ -7,7 +7,8 @@ class Gpt_api:
         pass
     
     def get_chat_completion(self,messages, format):
-        # OpenAIインスタンス生成　#APIキー
+        # OpenAIインスタンス生成
+        openai.api_key = ""
         # API呼び出し
         chat_completion = openai.ChatCompletion.create(
             messages=messages,  # 要求する内容を入力
