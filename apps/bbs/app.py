@@ -52,6 +52,7 @@ class Evaluation(db.Model):
     idea_id = db.Column(db.Integer, db.ForeignKey('idea.id'), nullable=False)
     summary = db.Column(db.Text, nullable=False)
     scores = db.Column(db.Text, nullable=False)
+    advice = db.Column(db.Text)  # ←追加！
 
 with app.app_context():
     db.create_all()
@@ -161,7 +162,9 @@ def room(room_id):
                 if evaluation:
                     evaluation_result = {
                         "summary": evaluation.summary,
-                        "scores": json.loads(evaluation.scores)
+                        "scores": json.loads(evaluation.scores),
+                        "advice": evaluation.advice 
+
                     }
         
         elif room.phase == "rebrainstorming":
@@ -171,7 +174,8 @@ def room(room_id):
                 if evaluation:
                     evaluation_result = {
                         "summary": evaluation.summary,
-                        "scores": json.loads(evaluation.scores)
+                        "scores": json.loads(evaluation.scores),
+                        "advice": evaluation.advice 
                     }
         elif room.phase == "final_result":
             ideas = Idea.query.filter_by(room_id=room_id, round=2).all()
@@ -185,7 +189,7 @@ def room(room_id):
             max_avg = max(avg for _, _, avg in avg_scores)
 
             final_results = [
-                {"idea": idea.content, "summary": eval.summary, "scores": json.loads(eval.scores)}
+                {"idea": idea.content, "summary": eval.summary, "scores": json.loads(eval.scores), "advice": eval.advice}
                 for idea, eval, avg in avg_scores if avg == max_avg
             ]
 
@@ -226,7 +230,7 @@ def join_room():
 
         room = Room.query.get(room_id)
         if not room:
-            return "ルームが見つかりません", 404
+            return redirect(url_for("join_room", error=1))
 
         new_participant = Participant(name=name, room_id=room_id)
         db.session.add(new_participant)
@@ -408,12 +412,14 @@ def submit_feedback():
                 # 上書きする
                 evaluation.summary = evaluation_result["要約"]
                 evaluation.scores = json.dumps(evaluation_result["評価"][0], ensure_ascii=False)
+                evaluation.advice = evaluation_result["アドバイス"]  # ←追加
             else:
                 # まだない場合は新しく作る
                 evaluation = Evaluation(
                     idea_id=idea.id,
                     summary=evaluation_result["要約"],
-                    scores=json.dumps(evaluation_result["評価"][0], ensure_ascii=False)
+                    scores=json.dumps(evaluation_result["評価"][0], ensure_ascii=False),
+                    advice = evaluation_result["アドバイス"]   # ←追加
                 )
                 db.session.add(evaluation)
 

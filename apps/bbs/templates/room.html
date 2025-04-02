@@ -6,6 +6,7 @@
     <title>ルーム</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
         .container {
@@ -306,7 +307,7 @@
         box-shadow:
             inset 0 -10px 15px rgba(255, 255, 255, 0.3),  /* 光の反射 */
             2px 4px 10px rgba(0, 0, 0, 0.2);               /* 外枠の影 */
-        font-family: 'Indie Flower', 'Comic Sans MS';
+        font-family: 'M PLUS Rounded 1c', sans-serif;
         font-size: 1.1rem;
         line-height: 1.6;
         width: 100%;
@@ -595,7 +596,6 @@
       
     {% elif room.phase == 'evaluating' %}
     <div class="container">
-        <div class="container">
             <div class="title-box">
                 <div class="title-text">フィードバックを入力</div>
                 <div class="progress-bubble">
@@ -615,84 +615,87 @@
         
     {% elif room.phase == 'evaluated' %}
         <div class="container">
-            <div class="container">
-                <div class="title-box">
-                    <div class="title-text">評価結果</div>
-                    <div class="progress-bubble">
-                        <svg viewBox="0 0 36 36">
-                          <circle class="circle-bg" cx="18" cy="18" r="16" />
-                          <circle class="circle-bar" cx="18" cy="18" r="16"
-                                  stroke-dasharray="100"
-                                  stroke-dashoffset="{{ 100 - progress_pct }}" />
-                          <text x="18" y="18" transform="rotate(90 18 18)" class="circle-text">{{ current_phase }}/{{ total_phase }}</text>
-                        </svg>
-                      </div>
-                      
-                  </div>
+            <div class="title-box">
+                <div class="title-text">アイデアの評価結果</div>
+                <div class="progress-bubble">
+                    <svg viewBox="0 0 36 36">
+                        <circle class="circle-bg" cx="18" cy="18" r="16" />
+                        <circle class="circle-bar" cx="18" cy="18" r="16"
+                                stroke-dasharray="100"
+                                stroke-dashoffset="{{ 100 - progress_pct }}" />
+                        <text x="18" y="18" transform="rotate(90 18 18)" class="circle-text">{{ current_phase }}/{{ total_phase }}</text>
+                    </svg>
+                    </div>
+                    
+                </div>
 
-            <div class="card">
-            <label class="section-title">あなたのアイデア</label>
-            <blockquote class="display-box" style="white-space: pre-line;">{{ my_idea }}</blockquote>
-        
-            <label class="section-title">評価軸に基づく定量評価</label>
-            {% for key, value in evaluation_result.scores.items() %}
-                <div style="margin-bottom: 1.5rem;">
-                <span class="score-label">{{ key }}</span>
-                <div class="score-line">
-                    {% for i in range(1, 6) %}
-                    <div class="score-circle {% if i == value %}active{% endif %}">{{ i }}</div>
-                    {% endfor %}
-                </div>
-                </div>
-            {% endfor %}
-        
-            <label class="section-title">フィードバックの要約</label>
-            <div class="display-box" style="white-space: pre-line;">{{ evaluation_result.summary }}</div>
-        
-            <h3>参加者一覧</h3>
-            <table class="participant-table">
-            <thead>
-                <tr>
-                <th>名前</th>
-                <th>準備</th>
-                <th>ステータス</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% set host_id = participants[0].id|string %}
-                {% for participant in participants %}
-                <tr class="{% if participant.id|string == self_id %}highlight-self{% endif %}">
-                    <td>{{ participant.name }}</td>
-                    <td id="check-{{ participant.id }}">
-                    {% if participant.is_ready %}✅{% endif %}
-                    </td>
-                    <td>
-                    {% if participant.id|string == self_id and self_id != host_id %}
-                        <form method="post" action="{{ url_for('leave_room', participant_id=participant.id) }}" style="display:inline;">
-                        <button type="submit" class="small-button">退出</button>
-                        </form>
-                        <button onclick="toggleReady({{ participant.id }})"
-                                id="ready-btn-{{ participant.id }}"
-                                class="small-button">
-                        {% if participant.is_ready %}キャンセル{% else %}準備完了{% endif %}
-                        </button>
-                    {% elif participant.id|string == host_id %}
-                        ホスト
-                    {% endif %}
-                    </td>
-                </tr>
+        <div class="card">
+        <label class="section-title">あなたのアイデア</label>
+        <blockquote class="display-box" style="white-space: pre-line;">{{ my_idea }}</blockquote>
+
+        <label class="section-title">フィードバックの要約</label>
+        <div class="display-box" style="white-space: pre-line;">{{ evaluation_result.summary }}</div>
+    
+        <label class="section-title">評価軸に基づく定量評価</label>
+        {% for key, value in evaluation_result.scores.items() %}
+            <div style="margin-bottom: 1.5rem;">
+            <span class="score-label">{{ key }}</span>
+            <div class="score-line">
+                {% for i in range(1, 6) %}
+                <div class="score-circle {% if i == value %}active{% endif %}">{{ i }}</div>
                 {% endfor %}
-            </tbody>
-            </table>
-        
-            {% if self_id == host_id %}
-            <form method="post" action="{{ url_for('start_rebrainstorming', room_id=room.id) }}?participant_id={{ self_id }}">
-                <button id="start-btn" {% if not all_ready %}disabled{% endif %} class="start-button">
-                アイデア再提出フェーズへ進む
-                </button>
-            </form>
-            {% endif %}
             </div>
+            </div>
+        {% endfor %}
+    
+        <label class="section-title">AIからのアドバイス</label>
+        <div class="display-box" style="white-space: pre-line;">{{ evaluation_result.advice }}</div>
+
+    
+        <h3>参加者一覧</h3>
+        <table class="participant-table">
+        <thead>
+            <tr>
+            <th>名前</th>
+            <th>準備</th>
+            <th>ステータス</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set host_id = participants[0].id|string %}
+            {% for participant in participants %}
+            <tr class="{% if participant.id|string == self_id %}highlight-self{% endif %}">
+                <td>{{ participant.name }}</td>
+                <td id="check-{{ participant.id }}">
+                {% if participant.is_ready %}✅{% endif %}
+                </td>
+                <td>
+                {% if participant.id|string == self_id and self_id != host_id %}
+                    <form method="post" action="{{ url_for('leave_room', participant_id=participant.id) }}" style="display:inline;">
+                    <button type="submit" class="small-button">退出</button>
+                    </form>
+                    <button onclick="toggleReady({{ participant.id }})"
+                            id="ready-btn-{{ participant.id }}"
+                            class="small-button">
+                    {% if participant.is_ready %}キャンセル{% else %}準備完了{% endif %}
+                    </button>
+                {% elif participant.id|string == host_id %}
+                    ホスト
+                {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    
+        {% if self_id == host_id %}
+        <form method="post" action="{{ url_for('start_rebrainstorming', room_id=room.id) }}?participant_id={{ self_id }}">
+            <button id="start-btn" {% if not all_ready %}disabled{% endif %} class="start-button">
+            アイデア再提出フェーズへ進む
+            </button>
+        </form>
+        {% endif %}
+        </div>
         </div>
       
 
@@ -743,6 +746,10 @@
                     </div>
                 </div>
                 {% endfor %}
+
+                <label class="section-title">AIからのアドバイス</label>
+                <div class="display-box" style="white-space: pre-line;">{{ evaluation_result.advice }}</div>
+
         
                 <label class="section-title">改善したアイデア</label>
                 <form method="post" action="{{ url_for('submit_idea') }}">
@@ -759,7 +766,7 @@
     {% elif room.phase == 'final_result' %}
         <div class="container">
             <div class="title-box">
-                <div class="title-text">最終評価結果（最も評価の高かったアイデア</div>
+                <div class="title-text">最も評価の高かったアイデア</div>
                 <div class="progress-bubble">
                     <svg viewBox="0 0 36 36">
                       <circle class="circle-bg" cx="18" cy="18" r="16" />
@@ -787,9 +794,12 @@
                     {% for i in range(1, 6) %}
                         <div class="score-circle {% if i == value %}active{% endif %}">{{ i }}</div>
                     {% endfor %}
+                    
                     </div>
                 </div>
                 {% endfor %}
+                <label class="section-title">AIからのアドバイス</label>
+                <div class="display-box" style="white-space: pre-line;">{{ result.advice }}</div>
             </div>
             {% endfor %}
 

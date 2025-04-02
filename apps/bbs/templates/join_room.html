@@ -95,5 +95,12 @@
     <button type="submit">入室する</button>
   </form>
 
+  {% if request.args.get('error') == '1' %}
+    <p style="color: red; font-weight: bold; text-align: center;">
+        ルームが見つかりません。もう一度確認してください。
+    </p>
+  {% endif %}
+
+
 </body>
 </html>
